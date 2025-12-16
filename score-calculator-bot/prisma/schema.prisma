@@ -1,0 +1,46 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. User Model (The Leaderboard Source)
+model User {
+  id        String   @id @default(cuid())
+  name      String   @unique // Name must be unique
+  totalScore Int     @default(0)
+  
+  scoreLogs ScoreLog[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 2. Event Model (The Rulebook)
+model Event {
+  id         String   @id @default(cuid())
+  eventType  String   @unique // e.g., "FUN_FRIDAY"
+  pointValue Int
+  
+  scoreLogs ScoreLog[]
+  
+  createdAt DateTime @default(now())
+}
+
+// 3. Score Log Model (The Audit Trail)
+model ScoreLog {
+  id          String   @id @default(cuid())
+  pointsAdded Int
+  timestamp   DateTime @default(now())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id])
+}
